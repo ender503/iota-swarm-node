@@ -61,16 +61,21 @@ def send_transfer(tag, messages, address, values, dict_tips, debug=0):
 
     propose_bundle = iota.ProposedBundle()
 
+    trytes = TryteString.from_string(messages)
+    # Split large message into multiple transactions
+    txn_messages = [trytes[i:i+2187] for i in range(0, len(trytes), 2187)]
+
     print("Setting output transaction ...")
-    txn_output = iota.ProposedTransaction(
-        address=iota.Address(address),
-        value=values,
-        tag=iota.Tag(tag),
-        message=TryteString.from_string(messages)
-    )
+    for txn_message in txn_messages:
+        txn_output = iota.ProposedTransaction(
+            address=iota.Address(address),
+            value=values,
+            tag=iota.Tag(tag),
+            message=txn_message
+        )
 
-    propose_bundle.add_transaction(txn_output)
-
+        propose_bundle.add_transaction(txn_output)
+    
     # Get input address
     if int(values) > 0:
         print("DEBUG values = %s" % (str(values)))
@@ -125,16 +130,20 @@ def send_transfer(tag, messages, address, values, dict_tips, debug=0):
     # Do PoW (attach to tangle)
     elapsed_pow = 0
     time_start_pow = time.time()
+    prev_txn = None
     for tx_tryte in trytes:
         # TODO: Timestamp
         # timestamp = None
         # timestamp_lower_bound = None
         # timestamp_upper_bound = None
 
+        trunk = trunk_hash if prev_txn is None else prev_txn.hash
+        branch = branch_hash if prev_txn is None else trunk_hash
+
         # Tips insert - trunk
-        tx_tryte = insert_to_trytes(2430, 2511, str(trunk_hash), tx_tryte)
+        tx_tryte = insert_to_trytes(2430, 2511, str(trunk), tx_tryte)
         # Tips insert - branch
-        tx_tryte = insert_to_trytes(2511, 2592, str(branch_hash), tx_tryte)
+        tx_tryte = insert_to_trytes(2511, 2592, str(branch), tx_tryte)
 
         # Do PoW for this transaction
         print("Do POW for this transaction ...")
@@ -144,6 +153,9 @@ def send_transfer(tag, messages, address, values, dict_tips, debug=0):
 
         time_end_pow = time.time()
         elapsed_pow = elapsed_pow + (time_end_pow - time_start_pow)
+
+        txn = iota.Transaction.from_tryte_string(tx_tryte)
+        prev_txn = txn
 
         print("Prepare to broadcast ...")
         try:
