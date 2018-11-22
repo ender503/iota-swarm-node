@@ -10,7 +10,7 @@ from iota.crypto.kerl.conv import convertToBytes, convertToTrits, \
     trits_to_trytes, trytes_to_trits
 from iota.trits import trits_from_int
 
-from config import SEED, FULLNODE
+from settings import SEED, FULLNODE
 from PoW import *
 
 DCURL_PATH = "./deps/dcurl/build/libdcurl.so"

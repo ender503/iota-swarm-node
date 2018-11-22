@@ -2,12 +2,11 @@
 import json
 from flask import Flask, request
 from flask_cors import CORS
+from settings import PORT
 
 from swarm_node import send_transfer, get_tips, generate_address
 from extensions.tangleid import main as extension_tangleid
 from utils import IotaJSONEncoder
-
-PORT = 8000
 
 app = Flask(__name__)
 CORS(app)
@@ -55,4 +54,4 @@ def execute_api():
     return result
 
 if __name__ == "__main__":
-    app.run(port=PORT, threaded=True)
+    app.run(port=int(PORT), threaded=True, debug=True)

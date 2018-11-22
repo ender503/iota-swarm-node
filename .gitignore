@@ -5,3 +5,5 @@ log.txt
 *.o.d
 
 .pytest_cache/
+
+.env.local
